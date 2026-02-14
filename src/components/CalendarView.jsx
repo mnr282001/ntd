@@ -224,7 +224,7 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
         }}>+</button>
       </div>
 
-      {activities.length === 0 && (
+      {/* {activities.length === 0 && (
         <div style={{ position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(calc(-50% - 20px))', zIndex: 100, animation: 'fadeIn 0.6s ease 0.5s both' }}>
           <button onClick={onLoadSample} style={{
             padding: '10px 20px', borderRadius: '20px',
@@ -235,7 +235,7 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
             Load sample plan →
           </button>
         </div>
-      )}
+      )} */}
 
       {activities.length > 0 && activities.length <= 2 && !dragId && (
         <div style={{
