@@ -1,29 +1,76 @@
-import { useState, useEffect, useRef } from 'react';
-import { searchPlaces, CATEGORIES } from '../lib/constants.js';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+const API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+
+// Load Google Maps script once
+let loadPromise = null;
+function loadGoogleMaps() {
+  if (window.google?.maps?.places) return Promise.resolve();
+  if (loadPromise) return loadPromise;
+  loadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => { loadPromise = null; reject(new Error('Failed to load Google Maps')); };
+    document.head.appendChild(script);
+  });
+  return loadPromise;
+}
 
 export default function LocationInput({ value, onChange }) {
   const [query, setQuery] = useState(value || '');
   const [results, setResults] = useState([]);
   const [focused, setFocused] = useState(false);
+  const [ready, setReady] = useState(false);
+  const serviceRef = useRef(null);
+  const sessionRef = useRef(null);
 
   useEffect(() => { setQuery(value || ''); }, [value]);
+
+  useEffect(() => {
+    if (!API_KEY) return;
+    loadGoogleMaps().then(() => {
+      serviceRef.current = new window.google.maps.places.AutocompleteService();
+      sessionRef.current = new window.google.maps.places.AutocompleteSessionToken();
+      setReady(true);
+    }).catch(() => {});
+  }, []);
+
+  const search = useCallback((input) => {
+    if (!ready || !input || input.length < 2) { setResults([]); return; }
+    serviceRef.current.getPlacePredictions(
+      { input, sessionToken: sessionRef.current, types: ['establishment'] },
+      (predictions, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+          setResults(predictions.map((p) => ({
+            placeId: p.place_id,
+            name: p.structured_formatting.main_text,
+            address: p.structured_formatting.secondary_text || '',
+          })));
+        } else {
+          setResults([]);
+        }
+      }
+    );
+  }, [ready]);
 
   const handleChange = (e) => {
     const v = e.target.value;
     setQuery(v);
     onChange(v);
-    setResults(searchPlaces(v));
+    search(v);
   };
 
   const handleSelect = (place) => {
-    const loc = `${place.name}, ${place.address}`;
+    const loc = place.address ? `${place.name}, ${place.address}` : place.name;
     setQuery(loc);
     onChange(loc);
     setResults([]);
     setFocused(false);
+    // Reset session token after a selection (Google billing best practice)
+    sessionRef.current = new window.google.maps.places.AutocompleteSessionToken();
   };
-
-  const typeIcons = { food: '🍽️', drinks: '🍹', activity: '🎯', outdoors: '🌿', culture: '🎨', shopping: '🛍️' };
 
   return (
     <div style={{ position: 'relative' }}>
@@ -31,7 +78,7 @@ export default function LocationInput({ value, onChange }) {
         <input
           value={query}
           onChange={handleChange}
-          onFocus={() => { setFocused(true); if (query.length >= 2) setResults(searchPlaces(query)); }}
+          onFocus={() => { setFocused(true); search(query); }}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
           placeholder="📍 Search for a place..."
           style={{ paddingRight: '36px' }}
@@ -53,14 +100,14 @@ export default function LocationInput({ value, onChange }) {
           boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
           animation: 'scaleIn 0.2s cubic-bezier(0.16,1,0.3,1)',
         }}>
-          {results.map((place, i) => (
+          {results.map((place) => (
             <button
-              key={i}
+              key={place.placeId}
               onMouseDown={(e) => { e.preventDefault(); handleSelect(place); }}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '12px',
                 padding: '12px 14px', background: 'none', border: 'none',
-                borderBottom: i < results.length - 1 ? '1px solid var(--border)' : 'none',
+                borderBottom: '1px solid var(--border)',
                 cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
@@ -72,7 +119,7 @@ export default function LocationInput({ value, onChange }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '16px', flexShrink: 0,
               }}>
-                {typeIcons[place.type] || '📍'}
+                📍
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
