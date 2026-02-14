@@ -3,7 +3,7 @@ import { HOURS, HOUR_HEIGHT, formatTime, minutesToTime } from '../lib/constants.
 import DraggableBlock from './DraggableBlock.jsx';
 import AddEditModal from './AddEditModal.jsx';
 
-export default function CalendarView({ activities, onAdd, onRemove, onUpdate, onUpdateTime, planName, setPlanName, planDate, setPlanDate, onShare, onLoadSample, shareSlug }) {
+export default function CalendarView({ activities, onAdd, onRemove, onUpdate, onUpdateTime, planName, setPlanName, planDate, setPlanDate, onShare, onLoadSample, sharing }) {
   const [modalState, setModalState] = useState(null); // null | { mode: 'add', hour } | { mode: 'edit', stop }
   const scrollRef = useRef(null);
   const now = new Date();
@@ -92,13 +92,15 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 800, background: 'linear-gradient(135deg, #ff6b35, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Note That Down</span>
         </div>
         {activities.length > 0 && (
-          <button onClick={onShare} style={{
+          <button onClick={onShare} disabled={sharing} style={{
             padding: '9px 20px', borderRadius: '20px', border: 'none',
-            background: 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
-            fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+            background: sharing ? 'rgba(255,107,53,0.4)' : 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
+            fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700,
+            cursor: sharing ? 'wait' : 'pointer',
             boxShadow: '0 2px 12px var(--accent-glow)', display: 'flex', alignItems: 'center', gap: '6px',
+            opacity: sharing ? 0.7 : 1, transition: 'opacity 0.2s',
           }}>
-            Share <span style={{ fontSize: '15px' }}>↗</span>
+            {sharing ? 'Sharing...' : <>Share <span style={{ fontSize: '15px' }}>↗</span></>}
           </button>
         )}
       </div>

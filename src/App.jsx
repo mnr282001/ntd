@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Shell from './components/Shell.jsx';
 import CalendarView from './components/CalendarView.jsx';
-import SharedTileView from './components/SharedTileView.jsx';
+import { supabase, generateSlug } from './lib/supabase.js';
 import { getShareUrl } from './lib/constants.js';
 
 // Sample plan for demo
@@ -18,15 +18,10 @@ const SAMPLE_PLAN = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState('create'); // create | shared
   const [activities, setActivities] = useState([]);
   const [planName, setPlanName] = useState('');
   const [planDate, setPlanDate] = useState('');
-  const [reactions, setReactions] = useState({});
-  const [myReactions, setMyReactions] = useState({});
-
-  // ─── In production, these call Supabase via the hooks ───
-  // For now, local state for the interactive prototype
+  const [sharing, setSharing] = useState(false);
 
   const handleAdd = (act) => {
     setActivities((prev) => [...prev, { ...act, start_hour: act.startHour, start_min: act.startMin }]);
@@ -52,37 +47,44 @@ export default function App() {
     );
   }, []);
 
-  const handleReact = (stopId, emoji) => {
-    const alreadyReacted = myReactions[stopId]?.has(emoji);
-    if (alreadyReacted) {
-      setReactions((prev) => {
-        const next = { ...prev };
-        if (next[stopId]?.[emoji]) {
-          next[stopId] = { ...next[stopId], [emoji]: next[stopId][emoji] - 1 };
-          if (next[stopId][emoji] <= 0) delete next[stopId][emoji];
-        }
-        return next;
-      });
-      setMyReactions((prev) => {
-        const next = { ...prev };
-        next[stopId] = new Set(next[stopId]);
-        next[stopId].delete(emoji);
-        return next;
-      });
-    } else {
-      setReactions((prev) => {
-        const next = { ...prev };
-        if (!next[stopId]) next[stopId] = {};
-        next[stopId] = { ...next[stopId], [emoji]: (next[stopId][emoji] || 0) + 1 };
-        return next;
-      });
-      setMyReactions((prev) => {
-        const next = { ...prev };
-        if (!next[stopId]) next[stopId] = new Set();
-        else next[stopId] = new Set(next[stopId]);
-        next[stopId].add(emoji);
-        return next;
-      });
+  const handleShare = async () => {
+    if (activities.length === 0 || sharing) return;
+    setSharing(true);
+    try {
+      const slug = generateSlug();
+
+      // 1. Create the plan
+      const { data: plan, error: planErr } = await supabase
+        .from('plans')
+        .insert({ share_slug: slug, name: planName || 'Untitled Plan', plan_date: planDate || null })
+        .select()
+        .single();
+      if (planErr) throw planErr;
+
+      // 2. Batch insert all stops
+      const stopRows = activities.map((act, i) => ({
+        plan_id: plan.id,
+        title: act.title,
+        location: act.location || 'TBD',
+        notes: act.notes || '',
+        category: act.category,
+        start_hour: act.start_hour ?? act.startHour,
+        start_min: act.start_min ?? act.startMin ?? 0,
+        duration: act.duration,
+        sort_order: i,
+      }));
+      const { error: stopsErr } = await supabase.from('stops').insert(stopRows);
+      if (stopsErr) throw stopsErr;
+
+      // 3. Copy share URL and navigate
+      const url = getShareUrl(slug);
+      await navigator.clipboard?.writeText(url).catch(() => {});
+      window.location.href = `/p/${slug}`;
+    } catch (err) {
+      console.error('Failed to share plan:', err);
+      alert('Failed to share. Please try again.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -94,22 +96,15 @@ export default function App() {
 
   return (
     <Shell>
-      {screen === 'shared' ? (
-        <SharedTileView
-          stops={activities} reactions={reactions} myReactions={myReactions} onReact={handleReact}
-          planName={planName} planDate={planDate}
-          onBack={() => setScreen('create')}
-        />
-      ) : (
-        <CalendarView
-          activities={activities} onAdd={handleAdd} onRemove={handleRemove}
-          onUpdate={handleUpdate} onUpdateTime={handleUpdateTime}
-          planName={planName} setPlanName={setPlanName}
-          planDate={planDate} setPlanDate={setPlanDate}
-          onShare={() => setScreen('shared')}
-          onLoadSample={loadSample}
-        />
-      )}
+      <CalendarView
+        activities={activities} onAdd={handleAdd} onRemove={handleRemove}
+        onUpdate={handleUpdate} onUpdateTime={handleUpdateTime}
+        planName={planName} setPlanName={setPlanName}
+        planDate={planDate} setPlanDate={setPlanDate}
+        onShare={handleShare}
+        onLoadSample={loadSample}
+        sharing={sharing}
+      />
     </Shell>
   );
 }
