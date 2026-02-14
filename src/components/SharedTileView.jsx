@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { CATEGORIES, EMOJI_REACTIONS, formatTime, formatDate, getShareUrl } from '../lib/constants.js';
 
-function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindIndex, onSwipe }) {
+function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindIndex, onSwipe, canSwipeLeft, canSwipeRight }) {
   const cat = CATEGORIES[activity.category] || CATEGORIES.activity;
   const sh = activity.start_hour ?? activity.startHour;
   const sm = activity.start_min ?? activity.startMin ?? 0;
@@ -10,90 +10,142 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
   const actReactions = reactions[activity.id] || {};
   const mySet = myReactions[activity.id] || new Set();
 
-  // Swipe drag state
-  const [offset, setOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  // Swipe drag state — all mutable values in refs to avoid stale closures
+  const [renderOffset, setRenderOffset] = useState(0);
   const [exitDir, setExitDir] = useState(null);
-  const startX = useRef(0);
-  const dragging = useRef(false);
+  const dragState = useRef({ active: false, startX: 0, startY: 0, dx: 0, locked: false });
+  const cardRef = useRef(null);
 
-  const handleStart = useCallback((clientX) => {
-    if (!isTop || exitDir) return;
-    startX.current = clientX;
-    dragging.current = true;
-    setIsDragging(true);
-  }, [isTop, exitDir]);
-
-  const handleMove = useCallback((clientX) => {
-    if (!dragging.current) return;
-    setOffset(clientX - startX.current);
-  }, []);
-
-  const handleEnd = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    setIsDragging(false);
-    if (Math.abs(offset) > 100) {
-      const dir = offset > 0 ? 'right' : 'left';
-      setExitDir(dir);
-      setTimeout(() => onSwipe(dir), 280);
-    } else {
-      setOffset(0);
-    }
-  }, [offset, onSwipe]);
-
-  // Window listeners for drag
   useEffect(() => {
-    if (!isDragging) return;
-    const onMove = (e) => handleMove(e.clientX ?? e.touches?.[0]?.clientX);
-    const onEnd = () => handleEnd();
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('touchend', onEnd);
-    window.addEventListener('touchcancel', onEnd);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onEnd);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onEnd);
-      window.removeEventListener('touchcancel', onEnd);
+    if (!isTop) return;
+    const el = cardRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e) => {
+      if (exitDir) return;
+      const t = e.touches[0];
+      dragState.current = { active: true, startX: t.clientX, startY: t.clientY, dx: 0, locked: false };
     };
-  }, [isDragging, handleMove, handleEnd]);
 
-  const rotation = (offset / 20).toFixed(1);
+    const onTouchMove = (e) => {
+      const ds = dragState.current;
+      if (!ds.active) return;
+      const t = e.touches[0];
+      const dx = t.clientX - ds.startX;
+      const dy = t.clientY - ds.startY;
 
-  let transform, cardOpacity, transition;
+      // On first significant movement, decide: horizontal swipe or vertical scroll
+      if (!ds.locked) {
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          ds.locked = true;
+          ds.isHorizontal = Math.abs(dx) > Math.abs(dy);
+        }
+        return;
+      }
+
+      // If vertical, bail and let the browser scroll
+      if (!ds.isHorizontal) { ds.active = false; setRenderOffset(0); return; }
+
+      // Horizontal swipe — prevent scroll and move the card
+      e.preventDefault();
+      ds.dx = dx;
+      setRenderOffset(dx);
+    };
+
+    const onTouchEnd = () => {
+      const ds = dragState.current;
+      if (!ds.active) return;
+      ds.active = false;
+      const dx = ds.dx;
+      const dir = dx > 0 ? 'right' : 'left';
+      const canGo = dir === 'right' ? canSwipeRight : canSwipeLeft;
+      if (Math.abs(dx) > 80 && canGo) {
+        setExitDir(dir);
+        setTimeout(() => onSwipe(dir), 280);
+      } else {
+        setRenderOffset(0);
+      }
+    };
+
+    const onMouseDown = (e) => {
+      if (exitDir) return;
+      e.preventDefault();
+      dragState.current = { active: true, startX: e.clientX, startY: e.clientY, dx: 0, locked: true, isHorizontal: true };
+    };
+
+    const onMouseMove = (e) => {
+      const ds = dragState.current;
+      if (!ds.active) return;
+      const dx = e.clientX - ds.startX;
+      ds.dx = dx;
+      setRenderOffset(dx);
+    };
+
+    const onMouseUp = () => {
+      const ds = dragState.current;
+      if (!ds.active) return;
+      ds.active = false;
+      const dx = ds.dx;
+      const dir = dx > 0 ? 'right' : 'left';
+      const canGo = dir === 'right' ? canSwipeRight : canSwipeLeft;
+      if (Math.abs(dx) > 80 && canGo) {
+        setExitDir(dir);
+        setTimeout(() => onSwipe(dir), 280);
+      } else {
+        setRenderOffset(0);
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+    el.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+      el.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isTop, exitDir, onSwipe, canSwipeLeft, canSwipeRight]);
+
+  const isDragging = dragState.current.active;
+
+  const rotation = (renderOffset / 20).toFixed(1);
+
+  let transform, transition;
   if (exitDir) {
     transform = `translateX(${exitDir === 'right' ? '120%' : '-120%'}) rotate(${exitDir === 'right' ? '25' : '-25'}deg)`;
-    cardOpacity = 0;
-    transition = 'transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease';
+    transition = 'transform 0.28s cubic-bezier(0.4,0,0.2,1)';
   } else if (isTop) {
-    transform = `translateX(${offset}px) rotate(${rotation}deg)`;
-    cardOpacity = 1;
-    transition = isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
+    transform = `translateX(${renderOffset}px) rotate(${rotation}deg)`;
+    transition = renderOffset !== 0 ? 'none' : 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
   } else {
-    const scale = Math.max(0.9, 1 - behindIndex * 0.05);
-    const yOff = behindIndex * 14;
+    const scale = Math.max(0.92, 1 - behindIndex * 0.04);
+    const yOff = behindIndex * 10;
     transform = `translateY(${yOff}px) scale(${scale})`;
-    cardOpacity = Math.max(0.5, 1 - behindIndex * 0.2);
-    transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease';
+    transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
   }
 
   return (
     <div
-      onMouseDown={isTop ? (e) => { e.preventDefault(); handleStart(e.clientX); } : undefined}
-      onTouchStart={isTop ? (e) => handleStart(e.touches[0].clientX) : undefined}
+      ref={cardRef}
       style={{
         position: 'absolute', inset: 0,
         borderRadius: '28px', overflow: 'hidden',
         background: cat.gradient,
-        transform, opacity: cardOpacity, transition,
+        transform, transition,
         zIndex: isTop ? 10 : 5 - behindIndex,
         cursor: isTop ? (isDragging ? 'grabbing' : 'grab') : 'default',
         userSelect: 'none', WebkitUserSelect: 'none',
-        touchAction: 'pan-y',
-        boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.45)' : '0 10px 30px rgba(0,0,0,0.2)',
+        touchAction: 'none',
+        boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.45)' : '0 8px 24px rgba(0,0,0,0.3)',
       }}
     >
       {/* Decorative blobs */}
@@ -101,20 +153,20 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
       <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: '40%', height: '45%', borderRadius: '50%', background: 'rgba(0,0,0,0.06)', pointerEvents: 'none' }} />
 
       {/* Swipe indicator labels */}
-      {isTop && Math.abs(offset) > 40 && (
+      {isTop && Math.abs(renderOffset) > 40 && (
         <div style={{
           position: 'absolute', top: '28px',
-          ...(offset > 0 ? { left: '24px' } : { right: '24px' }),
+          ...(renderOffset > 0 ? { left: '24px' } : { right: '24px' }),
           padding: '8px 18px', borderRadius: '12px',
-          border: `2.5px solid ${offset > 0 ? '#10b981' : '#f472b6'}`,
-          color: offset > 0 ? '#10b981' : '#f472b6',
+          border: `2.5px solid ${renderOffset > 0 ? '#10b981' : '#f472b6'}`,
+          color: renderOffset > 0 ? '#10b981' : '#f472b6',
           fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 800,
           letterSpacing: '0.05em',
-          transform: `rotate(${offset > 0 ? '-12' : '12'}deg)`,
-          opacity: Math.min(1, Math.abs(offset) / 120),
+          transform: `rotate(${renderOffset > 0 ? '-12' : '12'}deg)`,
+          opacity: Math.min(1, Math.abs(renderOffset) / 120),
           zIndex: 20, pointerEvents: 'none',
         }}>
-          {offset > 0 ? 'NEXT →' : '← PREV'}
+          {renderOffset > 0 ? 'NEXT →' : '← PREV'}
         </div>
       )}
 
@@ -315,6 +367,8 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
             isTop={i === 0}
             behindIndex={i}
             onSwipe={handleSwipe}
+            canSwipeLeft={currentIndex > 0}
+            canSwipeRight={currentIndex < sorted.length - 1}
           />
         ))}
 
