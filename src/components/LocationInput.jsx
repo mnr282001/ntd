@@ -37,6 +37,8 @@ export default function LocationInput({ value, onChange }) {
     }).catch(() => {});
   }, []);
 
+  const debounceRef = useRef(null);
+
   const search = useCallback((input) => {
     if (!ready || !input || input.length < 2) { setResults([]); return; }
     serviceRef.current.getPlacePredictions(
@@ -59,7 +61,8 @@ export default function LocationInput({ value, onChange }) {
     const v = e.target.value;
     setQuery(v);
     onChange(v);
-    search(v);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => search(v), 300);
   };
 
   const handleSelect = (place) => {
@@ -78,7 +81,7 @@ export default function LocationInput({ value, onChange }) {
         <input
           value={query}
           onChange={handleChange}
-          onFocus={() => { setFocused(true); search(query); }}
+          onFocus={() => { setFocused(true); if (query.length >= 2) search(query); }}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
           placeholder="📍 Search for a place..."
           style={{ paddingRight: '36px' }}
