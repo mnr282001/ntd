@@ -84,7 +84,7 @@ export default function DraggableBlock({ act, onRemove, onEdit, onDragStart, isD
           marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           fontWeight: 500,
         }}>
-          {act.location}
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(act.location)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.3)', textUnderlineOffset: '2px' }}>{act.location}</a>
         </div>
       )}
       {height > 75 && (
