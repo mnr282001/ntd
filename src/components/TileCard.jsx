@@ -50,7 +50,7 @@ export default function TileCard({ activity, size, index, reactions, myReactions
           {activity.title}
         </div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>
-          📍 {activity.location}
+          📍 <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.3)', textUnderlineOffset: '2px' }}>{activity.location}</a>
         </div>
       </div>
 
