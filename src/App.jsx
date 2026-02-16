@@ -95,16 +95,18 @@ export default function App() {
   };
 
   return (
-    <Shell>
-      <CalendarView
-        activities={activities} onAdd={handleAdd} onRemove={handleRemove}
-        onUpdate={handleUpdate} onUpdateTime={handleUpdateTime}
-        planName={planName} setPlanName={setPlanName}
-        planDate={planDate} setPlanDate={setPlanDate}
-        onShare={handleShare}
-        onLoadSample={loadSample}
-        sharing={sharing}
-      />
+    <Shell maxWidth="none">
+      <div className="plan-layout">
+        <CalendarView
+          activities={activities} onAdd={handleAdd} onRemove={handleRemove}
+          onUpdate={handleUpdate} onUpdateTime={handleUpdateTime}
+          planName={planName} setPlanName={setPlanName}
+          planDate={planDate} setPlanDate={setPlanDate}
+          onShare={handleShare}
+          onLoadSample={loadSample}
+          sharing={sharing}
+        />
+      </div>
     </Shell>
   );
 }

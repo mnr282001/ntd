@@ -27,13 +27,12 @@ export default function AddEditModal({ hour, stop, onSave, onDelete, onClose }) 
   const [duration, setDuration] = useState(stop?.duration || 60);
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+    <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', justifyContent: 'center' }} onClick={onClose}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
-      <div onClick={(e) => e.stopPropagation()} style={{
+      <div onClick={(e) => e.stopPropagation()} className="modal-sheet" style={{
         position: 'relative', width: '100%', maxWidth: '430px',
-        background: '#14121a', border: '1px solid var(--border)', borderBottom: 'none',
-        borderRadius: '24px 24px 0 0', padding: '8px 20px 36px',
-        animation: 'slideSheet 0.35s cubic-bezier(0.16,1,0.3,1)',
+        background: '#14121a', border: '1px solid var(--border)',
+        padding: '8px 20px 36px',
         maxHeight: '85vh', overflowY: 'auto',
       }}>
         <div style={{ width: '36px', height: '4px', borderRadius: '4px', background: 'var(--border-hover)', margin: '8px auto 20px' }} />

@@ -24,7 +24,7 @@ const USE_CASES = [
 export default function LandingPage() {
   return (
     <Shell maxWidth="none">
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
 
         {/* Nav */}
         <nav style={{
@@ -60,20 +60,20 @@ export default function LandingPage() {
 
         {/* Hero */}
         <section style={{
-          textAlign: 'center', padding: '80px 0 60px',
+          textAlign: 'center', padding: 'clamp(60px, 10vw, 120px) 0 clamp(40px, 6vw, 80px)',
           animation: 'slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
         }}>
           <h1 style={{
             fontFamily: 'var(--font-display)', fontWeight: 800,
-            fontSize: 'clamp(36px, 7vw, 64px)', lineHeight: 1.1,
-            color: 'var(--text)', marginBottom: 20,
+            fontSize: 'clamp(36px, 6vw, 72px)', lineHeight: 1.05,
+            color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.02em',
           }}>
             Plan your day.<br />
             <span style={{ color: 'var(--accent)' }}>Drop it in the group chat.</span>
           </h1>
           <p style={{
-            fontFamily: 'var(--font-body)', fontSize: 'clamp(16px, 2.5vw, 20px)',
-            color: 'var(--text-dim)', maxWidth: 520, margin: '0 auto 40px', lineHeight: 1.6,
+            fontFamily: 'var(--font-body)', fontSize: 'clamp(16px, 2vw, 20px)',
+            color: 'var(--text-dim)', maxWidth: 560, margin: '0 auto 44px', lineHeight: 1.7,
           }}>
             The easiest way to plan day outings, city trips, and hangouts with friends.
             Build a beautiful timeline, share it instantly, and make every day count.
@@ -143,16 +143,15 @@ export default function LandingPage() {
           }}>
             Whether it's a spontaneous city adventure or a carefully curated day trip, we've got you covered.
           </p>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 20,
+          <div className="landing-grid-4" style={{
+            display: 'grid', gap: 20,
           }}>
             {FEATURES.map((f) => (
               <div key={f.title} style={{
-                padding: 24, borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+                padding: 28, borderRadius: 'var(--radius)', border: '1px solid var(--border)',
                 background: 'var(--surface)',
               }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>{f.icon}</div>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>{f.icon}</div>
                 <h3 style={{
                   fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17,
                   color: 'var(--text)', marginBottom: 6,
@@ -181,9 +180,8 @@ export default function LandingPage() {
           }}>
             From brunch crawls to museum marathons — create shareable itineraries for every kind of day out.
           </p>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: 20,
+          <div className="landing-grid-4" style={{
+            display: 'grid', gap: 20,
           }}>
             {USE_CASES.map((uc) => (
               <div key={uc.title} style={{

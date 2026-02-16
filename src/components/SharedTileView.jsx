@@ -364,9 +364,9 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="shared-root" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {/* Header — constrained width */}
-      <div style={{
+      <div className="shared-header" style={{
         width: '100%', maxWidth: '600px', padding: '16px 20px 12px',
         animation: 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.05s both',
       }}>
@@ -423,9 +423,9 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
       </div>
 
       {/* Card area with arrow buttons */}
-      <div style={{
+      <div className="shared-card-area" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        gap: '16px', width: '100%', maxWidth: '700px', padding: '0 16px',
+        gap: '16px', width: '100%', padding: '0 16px',
         flex: 1,
         animation: 'scaleIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both',
       }}>
@@ -435,9 +435,8 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
         </div>
 
         {/* Card stack */}
-        <div style={{
-          position: 'relative', flex: 1, minHeight: '440px', maxHeight: '580px',
-          maxWidth: '420px', width: '100%',
+        <div className="shared-card-stack" style={{
+          position: 'relative', flex: 1, width: '100%',
         }}>
           {stackCards.map(({ stop, position }) => (
             <SwipeCard

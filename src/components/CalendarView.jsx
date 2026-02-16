@@ -214,7 +214,7 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
       </div>
 
       {/* FAB */}
-      <div style={{ position: 'fixed', bottom: '28px', right: 'max(20px, calc((100vw - 430px)/2 + 20px))', zIndex: 100 }}>
+      <div className="plan-fab" style={{ position: 'fixed', bottom: '28px', zIndex: 100 }}>
         <button onClick={() => setModalState({ mode: 'add', hour: 12 })} style={{
           width: '56px', height: '56px', borderRadius: '18px', border: 'none',
           background: 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
@@ -238,8 +238,8 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
       )} */}
 
       {activities.length > 0 && activities.length <= 2 && !dragId && (
-        <div style={{
-          position: 'fixed', bottom: '92px', right: 'max(20px, calc((100vw - 430px)/2 + 20px))', zIndex: 99,
+        <div className="plan-hint" style={{
+          position: 'fixed', bottom: '92px', zIndex: 99,
           background: 'rgba(20,18,26,0.9)', border: '1px solid var(--border-hover)',
           borderRadius: '12px', padding: '8px 12px',
           fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-dim)',
