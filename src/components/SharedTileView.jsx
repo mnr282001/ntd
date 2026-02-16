@@ -268,6 +268,31 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
   );
 }
 
+function ArrowButton({ direction, disabled, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: '48px', height: '48px', borderRadius: '50%',
+        background: disabled ? 'var(--surface)' : 'rgba(255,107,53,0.12)',
+        border: `1px solid ${disabled ? 'var(--border)' : 'rgba(255,107,53,0.25)'}`,
+        color: disabled ? 'var(--text-faint)' : 'var(--accent)',
+        cursor: disabled ? 'default' : 'pointer',
+        fontSize: '20px', fontWeight: 700,
+        transition: 'all 0.2s',
+        opacity: disabled ? 0.4 : 1,
+        flexShrink: 0,
+      }}
+      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(255,107,53,0.2)'; }}
+      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(255,107,53,0.12)'; }}
+    >
+      {direction === 'left' ? '‹' : '›'}
+    </button>
+  );
+}
+
 export default function SharedTileView({ stops, reactions, myReactions, onReact, planName, planDate, shareSlug }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -286,6 +311,16 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
     });
   }, [sorted.length]);
 
+  // Keyboard arrow support
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') handleSwipe('left');
+      if (e.key === 'ArrowRight') handleSwipe('right');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleSwipe]);
+
   const handleCopy = () => {
     const url = shareSlug ? getShareUrl(shareSlug) : window.location.href;
     navigator.clipboard?.writeText(url).catch(() => {});
@@ -294,11 +329,16 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
   };
 
   const visibleCards = sorted.slice(currentIndex, currentIndex + 3);
+  const canLeft = currentIndex > 0;
+  const canRight = currentIndex < sorted.length - 1;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 16px' }}>
-      {/* Header */}
-      <div style={{ padding: '16px 4px 12px', animation: 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.05s both' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* Header — constrained width */}
+      <div style={{
+        width: '100%', maxWidth: '600px', padding: '16px 20px 12px',
+        animation: 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.05s both',
+      }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -351,47 +391,68 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
         ))}
       </div>
 
-      {/* Card stack */}
+      {/* Card area with arrow buttons */}
       <div style={{
-        position: 'relative', flex: 1, minHeight: '440px', maxHeight: '540px',
-        marginBottom: '16px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        gap: '16px', width: '100%', maxWidth: '700px', padding: '0 16px',
+        flex: 1,
         animation: 'scaleIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both',
       }}>
-        {visibleCards.map((stop, i) => (
-          <SwipeCard
-            key={`${stop.id}-${currentIndex}`}
-            activity={stop}
-            reactions={reactions}
-            myReactions={myReactions}
-            onReact={onReact}
-            isTop={i === 0}
-            behindIndex={i}
-            onSwipe={handleSwipe}
-            canSwipeLeft={currentIndex > 0}
-            canSwipeRight={currentIndex < sorted.length - 1}
-          />
-        ))}
+        {/* Left arrow — hidden on mobile via media query workaround */}
+        <div className="desktop-arrows">
+          <ArrowButton direction="left" disabled={!canLeft} onClick={() => handleSwipe('left')} />
+        </div>
 
-        {sorted.length === 0 && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%',
-            fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-dim)',
-          }}>
-            No stops in this plan yet
-          </div>
-        )}
+        {/* Card stack */}
+        <div style={{
+          position: 'relative', flex: 1, minHeight: '440px', maxHeight: '580px',
+          maxWidth: '420px', width: '100%',
+        }}>
+          {visibleCards.map((stop, i) => (
+            <SwipeCard
+              key={`${stop.id}-${currentIndex}`}
+              activity={stop}
+              reactions={reactions}
+              myReactions={myReactions}
+              onReact={onReact}
+              isTop={i === 0}
+              behindIndex={i}
+              onSwipe={handleSwipe}
+              canSwipeLeft={canLeft}
+              canSwipeRight={canRight}
+            />
+          ))}
+
+          {sorted.length === 0 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%',
+              fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-dim)',
+            }}>
+              No stops in this plan yet
+            </div>
+          )}
+        </div>
+
+        {/* Right arrow */}
+        <div className="desktop-arrows">
+          <ArrowButton direction="right" disabled={!canRight} onClick={() => handleSwipe('right')} />
+        </div>
       </div>
 
       {/* Bottom hint */}
       <div style={{
-        textAlign: 'center', padding: '0 20px 32px',
+        textAlign: 'center', padding: '16px 20px 32px',
         fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-faint)',
         animation: 'fadeIn 1s ease 0.8s both',
       }}>
         {sorted.length > 1 ? (
-          <>← swipe to browse → · {currentIndex + 1} of {sorted.length}</>
+          <>
+            <span className="mobile-hint">← swipe to browse → · </span>
+            <span className="desktop-hint">use arrows or keyboard ← → · </span>
+            {currentIndex + 1} of {sorted.length}
+          </>
         ) : (
-          <>Tap emojis to react 💬</>
+          <>Tap emojis to react</>
         )}
       </div>
     </div>
