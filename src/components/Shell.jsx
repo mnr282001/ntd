@@ -1,6 +1,6 @@
-export default function Shell({ children }) {
+export default function Shell({ children, maxWidth = '430px' }) {
   return (
-    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', maxWidth: '430px', margin: '0 auto' }}>
+    <div style={{ position: 'relative', width: '100%', minHeight: '100vh', maxWidth, margin: '0 auto' }}>
       {/* Ambient background */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'var(--bg)' }}>
         <div style={{ position: 'absolute', top: '-40%', right: '-30%', width: '80vw', height: '80vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 65%)', filter: 'blur(80px)' }} />

@@ -113,7 +113,7 @@ export default function SharedView() {
 
   if (!showSplash && (error || (!loading && !plan))) {
     return (
-      <Shell>
+      <Shell maxWidth="none">
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           minHeight: '100vh', gap: '16px', padding: '20px',
@@ -145,7 +145,7 @@ export default function SharedView() {
   }
 
   return (
-    <Shell>
+    <Shell maxWidth="none">
       {showSplash && <SplashScreen onDone={handleSplashDone} />}
 
       {/* Still loading after splash */}
