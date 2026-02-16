@@ -4,12 +4,11 @@ import DraggableBlock from './DraggableBlock.jsx';
 import AddEditModal from './AddEditModal.jsx';
 
 export default function CalendarView({ activities, onAdd, onRemove, onUpdate, onUpdateTime, planName, setPlanName, planDate, setPlanDate, onShare, onLoadSample, sharing }) {
-  const [modalState, setModalState] = useState(null); // null | { mode: 'add', hour } | { mode: 'edit', stop }
+  const [modalState, setModalState] = useState(null);
   const scrollRef = useRef(null);
   const now = new Date();
   const currentHour = now.getHours();
 
-  // Drag state
   const [dragId, setDragId] = useState(null);
   const [ghostTop, setGhostTop] = useState(null);
   const dragStartY = useRef(0);
@@ -82,25 +81,45 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
     <>
       {/* Top bar */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 50, padding: '14px 16px',
-        background: 'rgba(8,8,12,0.88)', backdropFilter: 'blur(20px)',
+        position: 'sticky', top: 0, zIndex: 50, padding: '12px 16px',
+        background: 'rgba(255, 253, 248, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>📝</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 800, background: 'linear-gradient(135deg, #ff6b35, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Note That Down</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8,
+            background: 'var(--accent-gradient)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14,
+          }}>
+            {'\u{1F4DD}'}
+          </div>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800,
+            color: 'var(--text)', letterSpacing: '-0.01em',
+          }}>
+            Note That Down
+          </span>
         </div>
         {activities.length > 0 && (
           <button onClick={onShare} disabled={sharing} style={{
-            padding: '9px 20px', borderRadius: '20px', border: 'none',
-            background: sharing ? 'rgba(255,107,53,0.4)' : 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
-            fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700,
+            padding: '8px 18px', borderRadius: 'var(--radius-full)', border: 'none',
+            background: sharing ? 'var(--surface-dim)' : 'var(--accent-gradient)', color: '#fff',
+            fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700,
             cursor: sharing ? 'wait' : 'pointer',
-            boxShadow: '0 2px 12px var(--accent-glow)', display: 'flex', alignItems: 'center', gap: '6px',
-            opacity: sharing ? 0.7 : 1, transition: 'opacity 0.2s',
+            boxShadow: sharing ? 'none' : 'var(--shadow-warm)',
+            display: 'flex', alignItems: 'center', gap: 6,
+            opacity: sharing ? 0.6 : 1, transition: 'all 0.2s var(--ease-smooth)',
           }}>
-            {sharing ? 'Sharing...' : <>Share <span style={{ fontSize: '15px' }}>↗</span></>}
+            {sharing ? (
+              <span style={{ color: 'var(--text-dim)' }}>Sharing...</span>
+            ) : (
+              <>
+                Share
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </>
+            )}
           </button>
         )}
       </div>
@@ -111,32 +130,40 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
           value={planName} onChange={(e) => setPlanName(e.target.value)}
           placeholder="Name your plan..."
           style={{
-            background: 'none', border: 'none', padding: '0 0 8px 0', marginBottom: '6px',
-            fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800,
+            background: 'none', border: 'none', padding: '0 0 8px 0', marginBottom: 6,
+            fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800,
             color: 'var(--text)', letterSpacing: '-0.02em', width: '100%',
-            borderBottom: '1px solid transparent',
+            borderBottom: '2px solid transparent',
+            transition: 'border-color 0.2s',
+            boxShadow: 'none',
           }}
-          onFocus={(e) => (e.target.style.borderBottomColor = 'rgba(255,107,53,0.3)')}
+          onFocus={(e) => (e.target.style.borderBottomColor = 'var(--accent)')}
           onBlur={(e) => (e.target.style.borderBottomColor = 'transparent')}
         />
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input type="date" value={planDate} onChange={(e) => setPlanDate(e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '10px', fontSize: '13px', width: 'auto' }}
+            style={{
+              padding: '7px 12px', borderRadius: 'var(--radius-xs)', fontSize: 13,
+              width: 'auto', fontWeight: 600, background: 'var(--surface-dim)',
+              border: '1px solid var(--border)',
+            }}
           />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-faint)' }}>
+          <span style={{
+            fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-dim)', fontWeight: 500,
+          }}>
             {activities.length} stop{activities.length !== 1 ? 's' : ''} planned
           </span>
         </div>
       </div>
 
-      <div style={{ height: '1px', background: 'var(--border)', margin: '14px 16px 0' }} />
+      <div style={{ height: 1, background: 'var(--border)', margin: '14px 16px 0' }} />
 
       {/* Calendar body */}
       <div ref={scrollRef} className="scroll-hide" style={{
         overflowY: dragId ? 'hidden' : 'auto',
         height: 'calc(100vh - 168px)', position: 'relative',
       }}>
-        <div style={{ position: 'relative', marginLeft: '56px', marginRight: '12px', paddingBottom: '100px' }}>
+        <div style={{ position: 'relative', marginLeft: 56, marginRight: 12, paddingBottom: 100 }}>
           {HOURS.map((h) => (
             <div key={h} onClick={() => { if (!dragId) setModalState({ mode: 'add', hour: h }); }} style={{
               position: 'absolute', left: 0, right: 0,
@@ -144,7 +171,7 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
               borderTop: '1px solid var(--border)', cursor: dragId ? 'grabbing' : 'pointer',
               transition: 'background 0.15s',
             }}
-              onMouseEnter={(e) => { if (!dragId) e.currentTarget.style.background = 'rgba(255,107,53,0.025)'; }}
+              onMouseEnter={(e) => { if (!dragId) e.currentTarget.style.background = 'var(--accent-soft)'; }}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             />
           ))}
@@ -152,8 +179,8 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
           {HOURS.map((h) => (
             <div key={`l${h}`} style={{
               position: 'absolute', top: `${(h - 6) * HOUR_HEIGHT - 7}px`,
-              left: '-52px', width: '44px', textAlign: 'right',
-              fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600,
+              left: -52, width: 44, textAlign: 'right',
+              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
               color: 'var(--text-faint)', pointerEvents: 'none', userSelect: 'none',
             }}>
               {formatTime(h)}
@@ -162,28 +189,28 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
 
           {currentHour >= 6 && currentHour <= 23 && (
             <div style={{
-              position: 'absolute', left: '-8px', right: 0, zIndex: 5, pointerEvents: 'none',
+              position: 'absolute', left: -8, right: 0, zIndex: 5, pointerEvents: 'none',
               top: `${(currentHour - 6) * HOUR_HEIGHT + (now.getMinutes() / 60) * HOUR_HEIGHT}px`,
               display: 'flex', alignItems: 'center',
             }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444', flexShrink: 0 }} />
-              <div style={{ flex: 1, height: '1.5px', background: 'linear-gradient(90deg, #ff4444 0%, transparent 100%)' }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#E8590C', flexShrink: 0 }} />
+              <div style={{ flex: 1, height: 1.5, background: 'linear-gradient(90deg, #E8590C 0%, transparent 100%)' }} />
             </div>
           )}
 
           {snapIndicator && (
             <div style={{
-              position: 'absolute', left: '-52px', right: 0, zIndex: 45, pointerEvents: 'none',
+              position: 'absolute', left: -52, right: 0, zIndex: 45, pointerEvents: 'none',
               top: `${snapIndicator.top}px`, display: 'flex', alignItems: 'center',
             }}>
               <div style={{
-                fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700,
-                color: 'var(--accent)', background: 'rgba(255,107,53,0.15)',
-                padding: '2px 8px', borderRadius: '6px', marginRight: '4px', whiteSpace: 'nowrap',
+                fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
+                color: 'var(--accent)', background: 'var(--accent-soft)',
+                padding: '2px 8px', borderRadius: 6, marginRight: 4, whiteSpace: 'nowrap',
               }}>
                 {snapIndicator.time}
               </div>
-              <div style={{ flex: 1, height: '1.5px', background: 'var(--accent)', opacity: 0.4 }} />
+              <div style={{ flex: 1, height: 1.5, background: 'var(--accent)', opacity: 0.3 }} />
             </div>
           )}
 
@@ -205,8 +232,10 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
             position: 'absolute', left: '50%', top: '35%', transform: 'translate(-50%, -50%)',
             textAlign: 'center', pointerEvents: 'none',
           }}>
-            <div style={{ fontSize: '36px', marginBottom: '10px', animation: 'shimmer 2.5s ease infinite' }}>👆</div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-faint)', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 40, marginBottom: 12, animation: 'float 3s ease-in-out infinite' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-dim)', lineHeight: 1.6, fontWeight: 500 }}>
               Tap a time slot to add a stop<br />or use the + button
             </div>
           </div>
@@ -214,38 +243,30 @@ export default function CalendarView({ activities, onAdd, onRemove, onUpdate, on
       </div>
 
       {/* FAB */}
-      <div className="plan-fab" style={{ position: 'fixed', bottom: '28px', zIndex: 100 }}>
+      <div className="plan-fab" style={{ position: 'fixed', bottom: 28, zIndex: 100 }}>
         <button onClick={() => setModalState({ mode: 'add', hour: 12 })} style={{
-          width: '56px', height: '56px', borderRadius: '18px', border: 'none',
-          background: 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
-          fontSize: '28px', fontWeight: 300, cursor: 'pointer',
-          boxShadow: '0 6px 24px var(--accent-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 56, height: 56, borderRadius: 18, border: 'none',
+          background: 'var(--accent-gradient)', color: '#fff',
+          fontSize: 26, fontWeight: 300, cursor: 'pointer',
+          boxShadow: 'var(--shadow-warm), var(--shadow-lg)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: activities.length === 0 ? 'pulse 2.5s ease infinite' : 'none',
-        }}>+</button>
+          transition: 'transform 0.2s var(--ease-spring)',
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
       </div>
-
-      {/* {activities.length === 0 && (
-        <div style={{ position: 'fixed', bottom: '28px', left: '50%', transform: 'translateX(calc(-50% - 20px))', zIndex: 100, animation: 'fadeIn 0.6s ease 0.5s both' }}>
-          <button onClick={onLoadSample} style={{
-            padding: '10px 20px', borderRadius: '20px',
-            background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
-            color: 'var(--text-dim)', fontFamily: 'var(--font-body)', fontSize: '13px',
-            fontWeight: 600, cursor: 'pointer', backdropFilter: 'blur(10px)', whiteSpace: 'nowrap',
-          }}>
-            Load sample plan →
-          </button>
-        </div>
-      )} */}
 
       {activities.length > 0 && activities.length <= 2 && !dragId && (
         <div className="plan-hint" style={{
-          position: 'fixed', bottom: '92px', zIndex: 99,
-          background: 'rgba(20,18,26,0.9)', border: '1px solid var(--border-hover)',
-          borderRadius: '12px', padding: '8px 12px',
-          fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-dim)',
-          backdropFilter: 'blur(10px)', animation: 'fadeIn 1s ease 1.5s both',
+          position: 'fixed', bottom: 92, zIndex: 99,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-sm)', padding: '8px 14px',
+          fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-dim)', fontWeight: 500,
+          boxShadow: 'var(--shadow-md)',
+          animation: 'fadeIn 1s ease 1.5s both',
         }}>
-          ↕ Drag to reorder · Tap ✏️ to edit
+          Drag to reorder · Double-tap to edit
         </div>
       )}
 

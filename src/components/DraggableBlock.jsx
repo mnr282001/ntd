@@ -16,18 +16,18 @@ export default function DraggableBlock({ act, onRemove, onEdit, onDragStart, isD
       onTouchStart={(e) => { onDragStart(act.id, e.touches[0].clientY, top); }}
       onDoubleClick={() => onEdit(act)}
       style={{
-        position: 'absolute', left: '4px', right: '0', zIndex: isDragging ? 50 : 10,
+        position: 'absolute', left: 4, right: 0, zIndex: isDragging ? 50 : 10,
         top: `${displayTop}px`, height: `${height}px`,
-        background: cat.gradient, borderRadius: '14px',
+        background: cat.gradient, borderRadius: 14,
         padding: height > 60 ? '10px 14px' : '6px 14px',
         overflow: 'hidden',
         cursor: isDragging ? 'grabbing' : 'grab',
-        animation: isDragging ? 'none' : 'scaleIn 0.3s cubic-bezier(0.16,1,0.3,1) both',
+        animation: isDragging ? 'none' : 'scaleIn 0.3s var(--ease-out) both',
         boxShadow: isDragging
-          ? `0 12px 40px ${cat.color}55, 0 0 0 2px ${cat.color}88`
-          : `0 4px 16px ${cat.color}33`,
+          ? `0 12px 40px ${cat.color}33, 0 0 0 2px rgba(255,255,255,0.2)`
+          : `0 4px 16px ${cat.color}22, var(--shadow-sm)`,
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
-        transition: isDragging ? 'box-shadow 0.2s' : 'top 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s',
+        transition: isDragging ? 'box-shadow 0.2s' : 'top 0.3s var(--ease-out), box-shadow 0.2s',
         opacity: isDragging ? 0.95 : 1,
         transform: isDragging ? 'scale(1.02)' : 'scale(1)',
         userSelect: 'none', WebkitUserSelect: 'none', touchAction: 'none',
@@ -35,9 +35,9 @@ export default function DraggableBlock({ act, onRemove, onEdit, onDragStart, isD
     >
       {/* Drag handle */}
       <div style={{
-        position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)',
-        width: '24px', height: '3px', borderRadius: '2px',
-        background: 'rgba(255,255,255,0.25)', pointerEvents: 'none',
+        position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
+        width: 24, height: 3, borderRadius: 2,
+        background: 'rgba(255,255,255,0.3)', pointerEvents: 'none',
       }} />
 
       {/* Edit button */}
@@ -46,12 +46,15 @@ export default function DraggableBlock({ act, onRemove, onEdit, onDragStart, isD
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         style={{
-          position: 'absolute', top: '6px', right: '34px', background: 'rgba(0,0,0,0.3)',
-          border: 'none', borderRadius: '8px', width: '22px', height: '22px',
-          color: 'rgba(255,255,255,0.7)', fontSize: '11px', cursor: 'pointer',
+          position: 'absolute', top: 6, right: 32, background: 'rgba(255,255,255,0.2)',
+          border: 'none', borderRadius: 7, width: 22, height: 22,
+          color: '#fff', fontSize: 11, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+          backdropFilter: 'blur(4px)',
         }}
-      >✏️</button>
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
 
       {/* Remove button */}
       <button
@@ -59,29 +62,33 @@ export default function DraggableBlock({ act, onRemove, onEdit, onDragStart, isD
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         style={{
-          position: 'absolute', top: '6px', right: '8px', background: 'rgba(0,0,0,0.3)',
-          border: 'none', borderRadius: '8px', width: '22px', height: '22px',
-          color: 'rgba(255,255,255,0.7)', fontSize: '13px', cursor: 'pointer',
+          position: 'absolute', top: 6, right: 6, background: 'rgba(255,255,255,0.2)',
+          border: 'none', borderRadius: 7, width: 22, height: 22,
+          color: '#fff', fontSize: 13, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+          backdropFilter: 'blur(4px)',
         }}
-      >×</button>
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
 
       <div style={{
-        fontFamily: 'var(--font-display)', fontSize: height > 55 ? '14px' : '12px',
-        fontWeight: 700, color: '#fff', lineHeight: 1.25, paddingRight: '56px', marginTop: '4px',
+        fontFamily: 'var(--font-display)', fontSize: height > 55 ? 14 : 12,
+        fontWeight: 700, color: '#fff', lineHeight: 1.25, paddingRight: 56, marginTop: 4,
       }}>
         {act.title}
       </div>
       {height > 55 && (
         <div style={{
-          fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(255,255,255,0.7)',
-          marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          fontFamily: 'var(--font-body)', fontSize: 11, color: 'rgba(255,255,255,0.75)',
+          marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          fontWeight: 500,
         }}>
-          📍 {act.location}
+          {act.location}
         </div>
       )}
       {height > 75 && (
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 4, fontWeight: 600 }}>
           {formatTime(sh, sm)} – {formatTime(endHour, endMin)}
         </div>
       )}

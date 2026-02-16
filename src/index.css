@@ -1,20 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Anybody:wght@400;500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 
 :root {
-  --bg: #08080c;
-  --surface: rgba(255,255,255,0.04);
-  --surface-hover: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.07);
-  --border-hover: rgba(255,255,255,0.14);
-  --text: #eeedf0;
-  --text-dim: rgba(255,255,255,0.4);
-  --text-faint: rgba(255,255,255,0.2);
-  --accent: #ff6b35;
-  --accent-glow: rgba(255,107,53,0.25);
+  --bg: #FFFDF8;
+  --bg-warm: #FFF8F0;
+  --surface: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-dim: #F7F3EE;
+  --surface-hover: #F2EDE7;
+  --border: rgba(28, 22, 16, 0.08);
+  --border-hover: rgba(28, 22, 16, 0.15);
+  --text: #1A1614;
+  --text-secondary: #5C534B;
+  --text-dim: #9C928A;
+  --text-faint: #C4BBB3;
+  --accent: #E8590C;
+  --accent-hover: #D04E08;
+  --accent-soft: rgba(232, 89, 12, 0.08);
+  --accent-glow: rgba(232, 89, 12, 0.15);
+  --accent-gradient: linear-gradient(135deg, #E8590C 0%, #F97316 100%);
+  --shadow-xs: 0 1px 2px rgba(28, 22, 16, 0.04);
+  --shadow-sm: 0 2px 8px rgba(28, 22, 16, 0.06), 0 1px 2px rgba(28, 22, 16, 0.04);
+  --shadow-md: 0 4px 16px rgba(28, 22, 16, 0.08), 0 2px 4px rgba(28, 22, 16, 0.04);
+  --shadow-lg: 0 8px 32px rgba(28, 22, 16, 0.10), 0 4px 8px rgba(28, 22, 16, 0.05);
+  --shadow-xl: 0 16px 48px rgba(28, 22, 16, 0.12), 0 8px 16px rgba(28, 22, 16, 0.06);
+  --shadow-warm: 0 8px 32px rgba(232, 89, 12, 0.12);
   --radius: 16px;
   --radius-sm: 12px;
-  --font-display: 'Anybody', sans-serif;
-  --font-body: 'Figtree', sans-serif;
+  --radius-xs: 8px;
+  --radius-full: 9999px;
+  --font-display: 'Bricolage Grotesque', serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,74 +44,149 @@ html, body, #root {
   font-family: var(--font-body);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle grain texture overlay */
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.3;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
 
 input, select, textarea {
   font-family: var(--font-body);
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 13px 16px;
   font-size: 15px;
+  font-weight: 500;
   outline: none;
   width: 100%;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
 }
 
-input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-input::placeholder { color: var(--text-faint); }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+input::placeholder, textarea::placeholder { color: var(--text-faint); font-weight: 400; }
 
 select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239C928A'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
+  background-position: right 14px center;
 }
-select option { background: #18161e; }
+select option { background: var(--surface); color: var(--text); }
 
 .scroll-hide::-webkit-scrollbar { display: none; }
 .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
-@keyframes popIn { from { opacity:0; transform: scale(0.85); } to { opacity:1; transform: scale(1); } }
-@keyframes shimmer { 0%,100% { opacity: 0.3; } 50% { opacity: 0.8; } }
-@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 10px transparent; } }
-@keyframes logoFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-@keyframes slideSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes splashDot { 0%,100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } }
+/* ═══ Animations ═══ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 0 12px transparent; }
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes slideSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes splashDot {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(-4px) rotate(-1deg); }
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
 
-/* Desktop arrow buttons: hidden on mobile, shown on desktop */
+/* ═══ Layout Classes ═══ */
 .desktop-arrows { display: none; }
 .desktop-hint { display: none; }
 .mobile-hint { display: inline; }
 
-/* Landing page grids */
+.landing-grid-3 { grid-template-columns: 1fr; }
 .landing-grid-4 { grid-template-columns: 1fr; }
 
-/* ── Mobile defaults ── */
-
-/* Plan view layout */
-.plan-layout { max-width: 430px; margin: 0 auto; }
+/* ═══ Mobile defaults ═══ */
+.plan-layout { max-width: 100%; margin: 0 auto; }
 .plan-fab { right: 20px; }
 .plan-hint { right: 20px; }
 
-/* Modal: bottom sheet on mobile */
 .modal-overlay { align-items: flex-end; }
 .modal-sheet {
-  border-radius: 24px 24px 0 0;
+  border-radius: 28px 28px 0 0;
   border-bottom: none;
-  animation: slideSheet 0.35s cubic-bezier(0.16,1,0.3,1);
+  animation: slideSheet 0.4s var(--ease-out);
 }
 
-/* Shared view card stack */
 .shared-card-area { max-width: 700px; }
-.shared-card-stack { min-height: 440px; max-height: 580px; max-width: 420px; }
+.shared-card-stack { min-height: 420px; max-height: 560px; max-width: 400px; }
 
-/* ── Desktop (768px+) ── */
+/* ═══ Tablet (640px+) ═══ */
+@media (min-width: 640px) {
+  .landing-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .landing-grid-4 { grid-template-columns: repeat(2, 1fr); }
+
+  .plan-layout {
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .plan-fab { right: calc((100vw - 540px) / 2 + 20px); }
+  .plan-hint { right: calc((100vw - 540px) / 2 + 20px); }
+}
+
+/* ═══ Desktop (768px+) ═══ */
 @media (min-width: 768px) {
   .desktop-arrows { display: block; }
   .desktop-hint { display: inline; }
@@ -101,40 +194,38 @@ select option { background: #18161e; }
 
   .landing-grid-4 { grid-template-columns: repeat(2, 1fr); }
 
-  /* Plan view: wider on desktop */
   .plan-layout {
-    max-width: 640px;
+    max-width: 600px;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
   }
-  .plan-fab { right: calc((100vw - 640px) / 2 + 20px); }
-  .plan-hint { right: calc((100vw - 640px) / 2 + 20px); }
+  .plan-fab { right: calc((100vw - 600px) / 2 + 20px); }
+  .plan-hint { right: calc((100vw - 600px) / 2 + 20px); }
 
-  /* Modal: centered dialog on desktop */
   .modal-overlay { align-items: center; }
   .modal-sheet {
     border-radius: 24px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
     max-width: 480px;
-    animation: scaleIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    animation: scaleIn 0.3s var(--ease-out);
   }
 
-  /* Shared view: bigger cards on desktop */
   .shared-card-area { max-width: 900px; }
-  .shared-card-stack { min-height: 520px; max-height: 680px; max-width: 520px; }
+  .shared-card-stack { min-height: 500px; max-height: 640px; max-width: 480px; }
   .shared-header { max-width: 700px; }
 }
 
-/* ── Large desktop (1024px+) ── */
+/* ═══ Large desktop (1024px+) ═══ */
 @media (min-width: 1024px) {
-  .plan-layout { max-width: 720px; }
-  .plan-fab { right: calc((100vw - 720px) / 2 + 24px); }
-  .plan-hint { right: calc((100vw - 720px) / 2 + 24px); }
+  .landing-grid-4 { grid-template-columns: repeat(4, 1fr); }
 
-  .shared-card-stack { min-height: 560px; max-height: 720px; max-width: 560px; }
+  .plan-layout { max-width: 680px; }
+  .plan-fab { right: calc((100vw - 680px) / 2 + 24px); }
+  .plan-hint { right: calc((100vw - 680px) / 2 + 24px); }
+
+  .shared-card-stack { min-height: 540px; max-height: 700px; max-width: 520px; }
   .shared-card-area { max-width: 1000px; gap: 32px; }
 
-  /* Shared view: horizontal layout on large screens */
   .shared-root {
     flex-direction: row !important;
     flex-wrap: wrap;

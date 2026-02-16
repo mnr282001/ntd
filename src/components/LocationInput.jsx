@@ -95,10 +95,10 @@ export default function LocationInput({ value, onChange }) {
       {focused && results.length > 0 && (
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 30,
-          background: 'rgba(20,18,26,0.97)', border: '1px solid var(--border-hover)',
-          borderRadius: '14px', overflow: 'hidden', backdropFilter: 'blur(20px)',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-          animation: 'scaleIn 0.2s cubic-bezier(0.16,1,0.3,1)',
+          background: 'var(--surface)', border: '1px solid var(--border-hover)',
+          borderRadius: 'var(--radius-sm)', overflow: 'hidden',
+          boxShadow: 'var(--shadow-lg)',
+          animation: 'scaleIn 0.2s var(--ease-out)',
         }}>
           {results.map((place) => (
             <button
@@ -110,7 +110,7 @@ export default function LocationInput({ value, onChange }) {
                 borderBottom: '1px solid var(--border)',
                 cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-hover)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
             >
               <div style={{

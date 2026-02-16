@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CATEGORIES, HOURS, formatTime } from '../lib/constants.js';
 import LocationInput from './LocationInput.jsx';
 
 const Pill = ({ children, active, onClick }) => (
   <button onClick={onClick} style={{
-    padding: '8px 16px', borderRadius: '20px',
-    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-    background: active ? 'rgba(255,107,53,0.12)' : 'var(--surface)',
-    color: active ? 'var(--accent)' : 'var(--text-dim)',
-    fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600,
-    cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
+    padding: '8px 16px', borderRadius: 'var(--radius-full)',
+    border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+    background: active ? 'var(--accent-soft)' : 'var(--surface)',
+    color: active ? 'var(--accent)' : 'var(--text-secondary)',
+    fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600,
+    cursor: 'pointer', transition: 'all 0.2s var(--ease-smooth)', whiteSpace: 'nowrap', flexShrink: 0,
   }}>
     {children}
   </button>
@@ -28,34 +28,36 @@ export default function AddEditModal({ hour, stop, onSave, onDelete, onClose }) 
 
   return (
     <div className="modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', justifyContent: 'center' }} onClick={onClose}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26, 22, 20, 0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
       <div onClick={(e) => e.stopPropagation()} className="modal-sheet" style={{
-        position: 'relative', width: '100%', maxWidth: '430px',
-        background: '#14121a', border: '1px solid var(--border)',
+        position: 'relative', width: '100%', maxWidth: 430,
+        background: 'var(--bg)', border: '1px solid var(--border)',
         padding: '8px 20px 36px',
         maxHeight: '85vh', overflowY: 'auto',
+        boxShadow: 'var(--shadow-xl)',
       }}>
-        <div style={{ width: '36px', height: '4px', borderRadius: '4px', background: 'var(--border-hover)', margin: '8px auto 20px' }} />
+        {/* Handle bar */}
+        <div style={{ width: 36, height: 4, borderRadius: 4, background: 'var(--border-hover)', margin: '8px auto 20px' }} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, color: 'var(--text)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.01em' }}>
             {isEdit ? 'Edit stop' : 'Add a stop'}
           </div>
           {isEdit && onDelete && (
             <button onClick={() => { onDelete(stop.id); onClose(); }} style={{
-              padding: '6px 14px', borderRadius: '10px', border: '1px solid rgba(255,68,68,0.3)',
-              background: 'rgba(255,68,68,0.08)', color: '#ff4444',
-              fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+              padding: '6px 14px', borderRadius: 'var(--radius-xs)', border: '1px solid rgba(220, 38, 38, 0.2)',
+              background: 'rgba(220, 38, 38, 0.06)', color: '#DC2626',
+              fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}>
               Delete
             </button>
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's the move?" autoFocus />
 
-          <div className="scroll-hide" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '2px 0' }}>
+          <div className="scroll-hide" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '2px 0' }}>
             {Object.entries(CATEGORIES).map(([key, cat]) => (
               <Pill key={key} active={category === key} onClick={() => setCategory(key)}>
                 {cat.emoji} {cat.label}
@@ -63,20 +65,28 @@ export default function AddEditModal({ hour, stop, onSave, onDelete, onClose }) 
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', display: 'block' }}>Start</label>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <label style={{
+                fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700,
+                color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em',
+                marginBottom: 6, display: 'block',
+              }}>Start</label>
+              <div style={{ display: 'flex', gap: 6 }}>
                 <select value={startHour} onChange={(e) => setStartHour(+e.target.value)} style={{ flex: 1 }}>
                   {HOURS.map((h) => <option key={h} value={h}>{formatTime(h)}</option>)}
                 </select>
-                <select value={startMin} onChange={(e) => setStartMin(+e.target.value)} style={{ width: '72px' }}>
+                <select value={startMin} onChange={(e) => setStartMin(+e.target.value)} style={{ width: 72 }}>
                   {[0, 15, 30, 45].map((m) => <option key={m} value={m}>:{m.toString().padStart(2, '0')}</option>)}
                 </select>
               </div>
             </div>
             <div style={{ flex: 0.55 }}>
-              <label style={{ fontFamily: 'var(--font-body)', fontSize: '11px', fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px', display: 'block' }}>Duration</label>
+              <label style={{
+                fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700,
+                color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em',
+                marginBottom: 6, display: 'block',
+              }}>Duration</label>
               <select value={duration} onChange={(e) => setDuration(+e.target.value)}>
                 {[30, 45, 60, 90, 120, 150, 180].map((d) => (
                   <option key={d} value={d}>{d < 60 ? `${d}m` : `${d / 60}h${d % 60 ? ` ${d % 60}m` : ''}`}</option>
@@ -98,15 +108,17 @@ export default function AddEditModal({ hour, stop, onSave, onDelete, onClose }) 
               category,
               start_hour: startHour,
               start_min: startMin,
-              startHour, startMin, // include both key formats for local state compat
+              startHour, startMin,
               duration,
             });
             onClose();
           }} style={{
-            width: '100%', padding: '16px', borderRadius: 'var(--radius)', border: 'none',
-            background: 'linear-gradient(135deg, #ff6b35, #ff8f5e)', color: '#fff',
-            fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700,
-            cursor: 'pointer', marginTop: '4px', boxShadow: '0 4px 20px var(--accent-glow)',
+            width: '100%', padding: 16, borderRadius: 'var(--radius)', border: 'none',
+            background: 'var(--accent-gradient)', color: '#fff',
+            fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700,
+            cursor: 'pointer', marginTop: 4,
+            boxShadow: 'var(--shadow-warm)',
+            transition: 'transform 0.15s var(--ease-spring)',
           }}>
             {isEdit ? 'Save changes' : 'Add to plan'}
           </button>
