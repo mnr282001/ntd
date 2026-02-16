@@ -165,20 +165,17 @@ export function useReactions(stopIds) {
     setMyReactions(myGrouped);
   }, []);
 
+  // Track latest myReactions in a ref so toggleReaction never has a stale closure
+  const myReactionsRef = useRef(myReactions);
+  useEffect(() => { myReactionsRef.current = myReactions; }, [myReactions]);
+
   // Toggle a reaction (add or remove)
   const toggleReaction = useCallback(async (stopId, emoji) => {
     const sessionId = getSessionId();
-    const alreadyReacted = myReactions[stopId]?.has(emoji);
+    const alreadyReacted = myReactionsRef.current[stopId]?.has(emoji);
 
+    // Optimistic update first, then DB call
     if (alreadyReacted) {
-      // Remove
-      await supabase
-        .from('reactions')
-        .delete()
-        .eq('stop_id', stopId)
-        .eq('emoji', emoji)
-        .eq('reactor_id', sessionId);
-
       setReactions((prev) => {
         const next = { ...prev };
         if (next[stopId]?.[emoji]) {
@@ -193,12 +190,14 @@ export function useReactions(stopIds) {
         next[stopId].delete(emoji);
         return next;
       });
-    } else {
-      // Add
+
       await supabase
         .from('reactions')
-        .upsert({ stop_id: stopId, emoji, reactor_id: sessionId });
-
+        .delete()
+        .eq('stop_id', stopId)
+        .eq('emoji', emoji)
+        .eq('reactor_id', sessionId);
+    } else {
       setReactions((prev) => {
         const next = { ...prev };
         if (!next[stopId]) next[stopId] = {};
@@ -212,8 +211,12 @@ export function useReactions(stopIds) {
         next[stopId].add(emoji);
         return next;
       });
+
+      await supabase
+        .from('reactions')
+        .upsert({ stop_id: stopId, emoji, reactor_id: sessionId });
     }
-  }, [myReactions]);
+  }, []);
 
   useEffect(() => {
     if (stopIds && stopIds.length > 0) {
