@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { CATEGORIES, EMOJI_REACTIONS, formatTime, formatDate, getShareUrl } from '../lib/constants.js';
 
-function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindIndex, onSwipe, canSwipeLeft, canSwipeRight }) {
+// stackPosition: 'prev' | 'top' | 'next-1' | 'next-2'
+function SwipeCard({ activity, reactions, myReactions, onReact, stackPosition, onSwipe, canSwipeLeft, canSwipeRight }) {
   const cat = CATEGORIES[activity.category] || CATEGORIES.activity;
   const sh = activity.start_hour ?? activity.startHour;
   const sm = activity.start_min ?? activity.startMin ?? 0;
@@ -9,6 +10,7 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
   const endM = (sm + activity.duration) % 60;
   const actReactions = reactions[activity.id] || {};
   const mySet = myReactions[activity.id] || new Set();
+  const isTop = stackPosition === 'top';
 
   // Swipe drag state — all mutable values in refs to avoid stale closures
   const [renderOffset, setRenderOffset] = useState(0);
@@ -34,7 +36,6 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
       const dx = t.clientX - ds.startX;
       const dy = t.clientY - ds.startY;
 
-      // On first significant movement, decide: horizontal swipe or vertical scroll
       if (!ds.locked) {
         if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
           ds.locked = true;
@@ -43,10 +44,8 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
         return;
       }
 
-      // If vertical, bail and let the browser scroll
       if (!ds.isHorizontal) { ds.active = false; setRenderOffset(0); return; }
 
-      // Horizontal swipe — prevent scroll and move the card
       e.preventDefault();
       ds.dx = dx;
       setRenderOffset(dx);
@@ -116,21 +115,39 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
   }, [isTop, exitDir, onSwipe, canSwipeLeft, canSwipeRight]);
 
   const isDragging = dragState.current.active;
-
   const rotation = (renderOffset / 20).toFixed(1);
 
-  let transform, transition;
+  let transform, transition, zIndex, opacity;
+  const ease = 'transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease';
+
   if (exitDir) {
     transform = `translateX(${exitDir === 'right' ? '120%' : '-120%'}) rotate(${exitDir === 'right' ? '25' : '-25'}deg)`;
     transition = 'transform 0.28s cubic-bezier(0.4,0,0.2,1)';
+    zIndex = 10;
+    opacity = 1;
   } else if (isTop) {
     transform = `translateX(${renderOffset}px) rotate(${rotation}deg)`;
-    transition = renderOffset !== 0 ? 'none' : 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
+    transition = renderOffset !== 0 ? 'none' : ease;
+    zIndex = 10;
+    opacity = 1;
+  } else if (stackPosition === 'prev') {
+    // Previous card peeks from the left
+    transform = 'translateX(-18px) translateY(6px) scale(0.95) rotate(-2deg)';
+    transition = ease;
+    zIndex = 4;
+    opacity = 0.6;
+  } else if (stackPosition === 'next-1') {
+    // First next card peeks from the right
+    transform = 'translateX(18px) translateY(6px) scale(0.95) rotate(2deg)';
+    transition = ease;
+    zIndex = 5;
+    opacity = 0.7;
   } else {
-    const scale = Math.max(0.92, 1 - behindIndex * 0.04);
-    const yOff = behindIndex * 10;
-    transform = `translateY(${yOff}px) scale(${scale})`;
-    transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
+    // Second next card peeks further right
+    transform = 'translateX(32px) translateY(12px) scale(0.90) rotate(3.5deg)';
+    transition = ease;
+    zIndex = 3;
+    opacity = 0.4;
   }
 
   return (
@@ -140,12 +157,12 @@ function SwipeCard({ activity, reactions, myReactions, onReact, isTop, behindInd
         position: 'absolute', inset: 0,
         borderRadius: '28px', overflow: 'hidden',
         background: cat.gradient,
-        transform, transition,
-        zIndex: isTop ? 10 : 5 - behindIndex,
+        transform, transition, zIndex, opacity,
         cursor: isTop ? (isDragging ? 'grabbing' : 'grab') : 'default',
         userSelect: 'none', WebkitUserSelect: 'none',
         touchAction: 'none',
         boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.45)' : '0 8px 24px rgba(0,0,0,0.3)',
+        pointerEvents: isTop ? 'auto' : 'none',
       }}
     >
       {/* Decorative blobs */}
@@ -328,9 +345,23 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const visibleCards = sorted.slice(currentIndex, currentIndex + 3);
   const canLeft = currentIndex > 0;
   const canRight = currentIndex < sorted.length - 1;
+
+  // Build stacked cards: prev (if exists) + current + next 1-2
+  const stackCards = [];
+  if (currentIndex > 0) {
+    stackCards.push({ stop: sorted[currentIndex - 1], position: 'prev' });
+  }
+  if (sorted[currentIndex]) {
+    stackCards.push({ stop: sorted[currentIndex], position: 'top' });
+  }
+  if (currentIndex + 1 < sorted.length) {
+    stackCards.push({ stop: sorted[currentIndex + 1], position: 'next-1' });
+  }
+  if (currentIndex + 2 < sorted.length) {
+    stackCards.push({ stop: sorted[currentIndex + 2], position: 'next-2' });
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -408,15 +439,14 @@ export default function SharedTileView({ stops, reactions, myReactions, onReact,
           position: 'relative', flex: 1, minHeight: '440px', maxHeight: '580px',
           maxWidth: '420px', width: '100%',
         }}>
-          {visibleCards.map((stop, i) => (
+          {stackCards.map(({ stop, position }) => (
             <SwipeCard
               key={`${stop.id}-${currentIndex}`}
               activity={stop}
               reactions={reactions}
               myReactions={myReactions}
               onReact={onReact}
-              isTop={i === 0}
-              behindIndex={i}
+              stackPosition={position}
               onSwipe={handleSwipe}
               canSwipeLeft={canLeft}
               canSwipeRight={canRight}
